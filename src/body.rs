@@ -30,7 +30,7 @@ impl<V: Vector<S>, S: Scalar> RigidBody<V, S> {
         if let Some(intersection) = &self.intersection {
             Shape::collide(intersection, &mut self.properties)
         } else {
-            self.properties.pos = self.properties.pos + self.properties.vel * delta;
+            self.properties.pos = self.properties.pos + self.properties.vel() * delta;
         }
         self.intersection = None;
     }
@@ -39,8 +39,8 @@ impl<V: Vector<S>, S: Scalar> RigidBody<V, S> {
         &self.properties.shape
     }
 
-    pub fn weight(&self) -> &S {
-        &self.properties.weight
+    pub fn weight(&self) -> S {
+        self.properties.weight
     }
 
     pub fn pos(&self) -> V {
@@ -48,6 +48,6 @@ impl<V: Vector<S>, S: Scalar> RigidBody<V, S> {
     }
 
     pub fn vel(&self) -> V {
-        self.properties.vel
+        self.properties.vel()
     }
 }

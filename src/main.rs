@@ -7,14 +7,19 @@ use nous::{RigidBody, Shape, Simulation, Vec2};
 async fn main() {
     let mut sim = Simulation::new();
 
-    let a = RigidBody::new(Shape::Sphere { radius: 0.5 }, 1., Vec2::ZERO, Vec2::ZERO);
+    let a = RigidBody::new(
+        Shape::Sphere { radius: 0.5 },
+        1.,
+        Vec2::ZERO,
+        Vec2::new(-1., 0.),
+    );
     sim.spawn(a);
 
     let b = RigidBody::new(
         Shape::Sphere { radius: 0.5 },
         1.,
         Vec2::new(0.5, -2.),
-        Vec2::new(0., 1.),
+        Vec2::new(0., 7.),
     );
     sim.spawn(b);
 
@@ -33,9 +38,11 @@ async fn main() {
                 Shape::Cube { .. } => todo!(),
             }
         }
-        let sleep = 16.6 / 1000.;
+        let sleep = 1. / 60.;
         sim.tick(sleep);
         thread::sleep(Duration::from_secs_f32(sleep));
+
+        dbg!(sim.total_momentum());
 
         next_frame().await
     }

@@ -8,7 +8,8 @@ pub struct BodyProperties<V, S> {
     pub shape: Shape<V, S>,
     pub weight: S,
     pub pos: V,
-    pub vel: V,
+    vel: V,
+    actual_vel: V,
 }
 
 impl<V: Vector<S>, S: Scalar> BodyProperties<V, S> {
@@ -18,6 +19,7 @@ impl<V: Vector<S>, S: Scalar> BodyProperties<V, S> {
             weight,
             pos,
             vel,
+            actual_vel: vel,
         }
     }
 
@@ -27,7 +29,27 @@ impl<V: Vector<S>, S: Scalar> BodyProperties<V, S> {
             weight: self.weight,
             pos: self.pos,
             vel: self.vel * delta,
+            actual_vel: self.vel,
         }
+    }
+
+    pub fn undo_delta(&self) -> Self {
+        Self {
+            shape: self.shape.clone(),
+            weight: self.weight,
+            pos: self.pos,
+            vel: self.actual_vel,
+            actual_vel: self.actual_vel,
+        }
+    }
+
+    pub fn vel(&self) -> V {
+        self.vel
+    }
+
+    pub fn set_vel(&mut self, vel: V) {
+        self.vel = vel;
+        self.actual_vel = vel;
     }
 }
 
@@ -72,7 +94,18 @@ impl<V: Vector<S>, S: Scalar> Shape<V, S> {
     }
 
     pub fn collide(i: &Intersection<V, S>, self_properties: &mut BodyProperties<V, S>) {
-        let new_vel = self_properties.vel.reflect(&i.other_normal);
-        self_properties.vel = new_vel;
+        let cr = S::from(0);
+        let ma = self_properties.weight;
+        let mb = i.other_properties.weight;
+        let ua = self_properties.vel().length();
+        let ub = i.other_properties.undo_delta().vel().length();
+
+        let new_dir = self_properties.vel.reflect(&i.other_normal).normalized();
+        self_properties.set_vel(new_dir * ((cr * mb * (ub - ua) + ma * ua + mb * ub) / (ma + mb)));
+
+        // let j = ((ma * mb) / (ma + mb)) * (S::from(1) + cr) * (i.other_normal.dot(&(ub - ua)));
+        // self_properties.set_vel(self_properties.vel() + i.other_normal * (j / ma));
+
+        dbg!(self_properties.vel().length());
     }
 }

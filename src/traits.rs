@@ -1,5 +1,6 @@
 use std::{
     fmt::Debug,
+    iter::Sum,
     ops::{Add, Div, Mul, Neg, Sub},
 };
 
@@ -18,12 +19,21 @@ pub trait Vector<S: Scalar>:
         self.dot(self)
     }
 
+    fn length(&self) -> S {
+        self.length_sq().sqrt()
+    }
+
     fn reflect(&self, normal: &Self) -> Self {
         *self - *normal * S::from(2) * self.dot(normal)
     }
 
     fn normalized(&self) -> Self {
-        *self / self.length_sq().sqrt()
+        let sq = self.length_sq();
+        if sq == S::from(0) {
+            return *self;
+        } else {
+            *self / sq.sqrt()
+        }
     }
 }
 
@@ -37,6 +47,7 @@ pub trait Scalar:
     + PartialOrd
     + From<i16>
     + Debug
+    + Sum
 {
     fn sqrt(&self) -> Self;
 }

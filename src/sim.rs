@@ -25,6 +25,9 @@ impl<V: Vector<S>, S: Scalar> Simulation<V, S> {
     }
 
     pub fn tick(&mut self, delta: S) {
+        #[cfg(debug_assertions)]
+        let total_momentum = self.total_momentum();
+
         for (a, b) in (0..self.objects.len()).tuple_combinations() {
             if a != b {
                 debug_assert!(a < b);
@@ -38,6 +41,13 @@ impl<V: Vector<S>, S: Scalar> Simulation<V, S> {
         for body in &mut self.objects {
             body.move_tick(delta);
         }
+
+        #[cfg(debug_assertions)]
+        debug_assert!((self.total_momentum() - total_momentum) < S::from(1) / S::from(1000))
+    }
+
+    pub fn total_momentum(&self) -> S {
+        self.objects().map(|o| o.weight() * o.vel().length()).sum()
     }
 }
 
