@@ -43,11 +43,13 @@ impl<V: Vector<S>, S: Scalar> Simulation<V, S> {
         }
 
         #[cfg(debug_assertions)]
-        debug_assert!((self.total_momentum() - total_momentum) < S::from(1) / S::from(1000))
+        debug_assert!((self.total_momentum() - total_momentum) < S::from(1) / S::from(1000));
+        #[cfg(debug_assertions)]
+        debug_assert!((total_momentum - self.total_momentum()) < S::from(1) / S::from(1000));
     }
 
     pub fn total_momentum(&self) -> S {
-        self.objects().map(|o| o.weight() * o.vel().length()).sum()
+        self.objects().map(|o| o.mass() * o.vel().length()).sum()
     }
 }
 

@@ -30,7 +30,7 @@ pub trait Vector<S: Scalar>:
     fn normalized(&self) -> Self {
         let sq = self.length_sq();
         if sq == S::from(0) {
-            return *self;
+            *self
         } else {
             *self / sq.sqrt()
         }
@@ -50,6 +50,13 @@ pub trait Scalar:
     + Sum
 {
     fn sqrt(&self) -> Self;
+    fn min(&self, other: &Self) -> Self {
+        if self < other {
+            *self
+        } else {
+            *other
+        }
+    }
 }
 
 impl Vector<f32> for glam::Vec2 {

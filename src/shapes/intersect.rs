@@ -15,6 +15,7 @@ pub fn sphere_sphere<V: Vector<S>, S: Scalar>(
 
     // Solve this equation with minimal t
     // ((a_pos + a_delta * t) - (b_pos + b_delta * t)).length_sq() == (a_radius + b_radius) * (a_radius + b_radius)
+    // https://www.desmos.com/calculator/bwrpm8sd66
     let r_sq = (a_radius + b_radius) * (a_radius + b_radius);
     let min_t = solver::quadratic(
         (b_delta - a_delta).length_sq(),

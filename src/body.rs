@@ -9,9 +9,9 @@ pub struct RigidBody<V, S> {
 }
 
 impl<V: Vector<S>, S: Scalar> RigidBody<V, S> {
-    pub fn new(shape: Shape<V, S>, weight: S, pos: V, vel: V) -> Self {
+    pub fn new(shape: Shape<V, S>, mass: S, pos: V, vel: V, restitution: S) -> Self {
         Self {
-            properties: BodyProperties::new(shape, weight, pos, vel),
+            properties: BodyProperties::new(shape, mass, pos, vel, restitution),
             intersection: None,
         }
     }
@@ -39,8 +39,8 @@ impl<V: Vector<S>, S: Scalar> RigidBody<V, S> {
         &self.properties.shape
     }
 
-    pub fn weight(&self) -> S {
-        self.properties.weight
+    pub fn mass(&self) -> S {
+        self.properties.mass
     }
 
     pub fn pos(&self) -> V {

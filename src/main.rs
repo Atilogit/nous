@@ -12,6 +12,7 @@ async fn main() {
         1.,
         Vec2::ZERO,
         Vec2::new(-1., 0.),
+        1.,
     );
     sim.spawn(a);
 
@@ -20,6 +21,7 @@ async fn main() {
         1.,
         Vec2::new(0.5, -2.),
         Vec2::new(0., 7.),
+        1.,
     );
     sim.spawn(b);
 
@@ -39,10 +41,10 @@ async fn main() {
             }
         }
         let sleep = 1. / 60.;
-        sim.tick(sleep);
+        sim.tick(sleep / 5.);
         thread::sleep(Duration::from_secs_f32(sleep));
 
-        dbg!(sim.total_momentum());
+        // dbg!(sim.total_momentum());
 
         next_frame().await
     }

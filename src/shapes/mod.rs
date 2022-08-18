@@ -6,18 +6,20 @@ use crate::traits::{Scalar, Vector};
 #[derive(Clone)]
 pub struct BodyProperties<V, S> {
     pub shape: Shape<V, S>,
-    pub weight: S,
+    pub mass: S,
     pub pos: V,
+    pub restitution: S,
     vel: V,
     actual_vel: V,
 }
 
 impl<V: Vector<S>, S: Scalar> BodyProperties<V, S> {
-    pub fn new(shape: Shape<V, S>, weight: S, pos: V, vel: V) -> Self {
+    pub fn new(shape: Shape<V, S>, mass: S, pos: V, vel: V, restitution: S) -> Self {
         Self {
             shape,
-            weight,
+            mass,
             pos,
+            restitution,
             vel,
             actual_vel: vel,
         }
@@ -26,8 +28,9 @@ impl<V: Vector<S>, S: Scalar> BodyProperties<V, S> {
     pub fn apply_delta(&self, delta: S) -> Self {
         Self {
             shape: self.shape.clone(),
-            weight: self.weight,
+            mass: self.mass,
             pos: self.pos,
+            restitution: self.restitution,
             vel: self.vel * delta,
             actual_vel: self.vel,
         }
@@ -36,8 +39,9 @@ impl<V: Vector<S>, S: Scalar> BodyProperties<V, S> {
     pub fn undo_delta(&self) -> Self {
         Self {
             shape: self.shape.clone(),
-            weight: self.weight,
+            mass: self.mass,
             pos: self.pos,
+            restitution: self.restitution,
             vel: self.actual_vel,
             actual_vel: self.actual_vel,
         }
@@ -69,7 +73,7 @@ pub struct Intersection<V, S> {
 impl<V: Vector<S>, S: Scalar> Intersection<V, S> {
     pub fn invert(&self) -> Self {
         Self {
-            t: self.t.clone(),
+            t: self.t,
             self_properties: self.other_properties.clone(),
             other_properties: self.self_properties.clone(),
             other_normal: self.other_normal * S::from(-1),
@@ -94,17 +98,28 @@ impl<V: Vector<S>, S: Scalar> Shape<V, S> {
     }
 
     pub fn collide(i: &Intersection<V, S>, self_properties: &mut BodyProperties<V, S>) {
-        let cr = S::from(0);
-        let ma = self_properties.weight;
-        let mb = i.other_properties.weight;
-        let ua = self_properties.vel().length();
-        let ub = i.other_properties.undo_delta().vel().length();
+        let cr = self_properties
+            .restitution
+            .min(&i.other_properties.restitution);
+        let ma = self_properties.mass;
+        let mb = i.other_properties.mass;
+        let ua = self_properties.vel();
+        let ub = i.other_properties.undo_delta().vel();
 
-        let new_dir = self_properties.vel.reflect(&i.other_normal).normalized();
-        self_properties.set_vel(new_dir * ((cr * mb * (ub - ua) + ma * ua + mb * ub) / (ma + mb)));
+        // Calculate relative velocity
+        let dv = ub - ua;
+        // Calculate relative velocity in terms of the normal direction
+        let vn = dv.dot(&i.other_normal);
 
-        // let j = ((ma * mb) / (ma + mb)) * (S::from(1) + cr) * (i.other_normal.dot(&(ub - ua)));
-        // self_properties.set_vel(self_properties.vel() + i.other_normal * (j / ma));
+        // Do not resolve if velocities are separating
+        if vn > S::from(0) {
+            // Calculate impulse scalar
+            let j = (-(S::from(1) + cr) * vn) / (S::from(1) / ma + S::from(1) / mb);
+
+            // Apply impulse
+            let impulse = i.other_normal * j;
+            self_properties.set_vel(self_properties.vel() - impulse * (S::from(1) / ma));
+        }
 
         dbg!(self_properties.vel().length());
     }
