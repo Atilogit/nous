@@ -1,17 +1,45 @@
-use std::ops::{Add, Mul, Sub};
+use std::{
+    fmt::Debug,
+    ops::{Add, Div, Mul, Neg, Sub},
+};
 
 pub trait Vector<S>:
-    Add<Self, Output = Self> + Sub<Self, Output = Self> + Mul<S, Output = Self> + Sized + Copy
+    Add<Output = Self> + Sub<Output = Self> + Mul<S, Output = Self> + Sized + Copy + Debug
 {
-    fn length_sq(&self) -> S;
+    fn dot(&self, other: &Self) -> S;
 }
 
-pub trait Scalar: Copy {}
+pub trait Scalar:
+    Copy
+    + Neg<Output = Self>
+    + Mul<Output = Self>
+    + Sub<Output = Self>
+    + Add<Output = Self>
+    + Div<Output = Self>
+    + PartialOrd
+    + From<i16>
+    + Debug
+{
+    fn sqrt(&self) -> Self;
+}
 
-impl Vector<f32> for glam::Vec2 {
-    fn length_sq(&self) -> f32 {
-        self.length_squared()
+pub trait VectorHelper<S>: Vector<S> {
+    fn length_sq(&self) -> S {
+        self.dot(self)
     }
 }
 
-impl Scalar for f32 {}
+impl<S: Scalar, V: Vector<S>> VectorHelper<S> for V {}
+
+impl Vector<f32> for glam::Vec2 {
+    fn dot(&self, other: &Self) -> f32 {
+        glam::Vec2::dot(*self, *other)
+    }
+}
+
+impl Scalar for f32 {
+    fn sqrt(&self) -> Self {
+        // Somehow errors with clippy but compiles fine
+        f32::sqrt(*self)
+    }
+}
