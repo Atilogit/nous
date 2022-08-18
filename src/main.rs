@@ -5,23 +5,27 @@ use nous::{RigidBody, Shape, Simulation, Vec2};
 async fn main() {
     let mut sim = Simulation::new();
 
-    let a = RigidBody::new(
+    sim.spawn(RigidBody::new(
         Shape::Sphere { radius: 0.5 },
         1.,
         Vec2::ZERO,
         Vec2::new(-1., 0.),
         1.,
-    );
-    sim.spawn(a);
-
-    let b = RigidBody::new(
+    ));
+    sim.spawn(RigidBody::new(
         Shape::Sphere { radius: 0.5 },
         1.,
         Vec2::new(0.5, -2.),
         Vec2::new(0., 8.),
         1.,
-    );
-    sim.spawn(b);
+    ));
+    sim.spawn(RigidBody::new(
+        Shape::Sphere { radius: 0.5 },
+        1.,
+        Vec2::new(0.5, 2.),
+        Vec2::new(0., -0.),
+        1.,
+    ));
 
     let scale = 40.;
     let delta_step = 0.5;
@@ -56,7 +60,7 @@ async fn main() {
         if is_mouse_button_pressed(MouseButton::Left) {
             sim.tick(delta_step);
         }
-        // sim.tick(0.001);
+        sim.tick(0.001);
 
         next_frame().await
     }
