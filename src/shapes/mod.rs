@@ -26,12 +26,12 @@ impl<V: Vector<S>, S: Scalar> Shape<V, S> {
                         (b_delta - a_delta).length_sq(),
                         S::from(2) * (a_pos - b_pos).dot(&(b_delta - a_delta)),
                         (a_pos - b_pos).length_sq() - r_sq,
-                    )
-                    .map(|s| s.0);
+                    );
 
-                    dbg!(min_t);
-
-                    true
+                    min_t
+                        .map(|s| s.1)
+                        .filter(|v| S::from(0) <= *v && v <= &S::from(1))
+                        .is_some()
                 }
                 Shape::Cube { .. } => todo!(),
             },
