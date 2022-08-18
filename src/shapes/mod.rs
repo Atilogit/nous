@@ -119,7 +119,7 @@ impl<V: Vector<S>, S: Scalar> Shape<V, S> {
         // Calculate relative velocity
         let dv = ub - ua;
         // Calculate relative velocity in terms of the normal direction
-        let vn = dv.dot(&i.other_normal);
+        let vn = dv.dot(i.other_normal);
 
         // Calculate impulse scalar
         let j = (-(S::from(1) + cr) * vn) / (S::from(1) / ma + S::from(1) / mb);

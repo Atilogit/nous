@@ -13,26 +13,26 @@ pub trait Vector<S: Scalar>:
     + Copy
     + Debug
 {
-    fn dot(&self, other: &Self) -> S;
+    fn dot(self, other: Self) -> S;
 
-    fn length_sq(&self) -> S {
+    fn length_sq(self) -> S {
         self.dot(self)
     }
 
-    fn length(&self) -> S {
+    fn length(self) -> S {
         self.length_sq().sqrt()
     }
 
-    fn reflect(&self, normal: &Self) -> Self {
-        *self - *normal * S::from(2) * self.dot(normal)
+    fn reflect(self, normal: Self) -> Self {
+        self - normal * S::from(2) * self.dot(normal)
     }
 
-    fn normalized(&self) -> Self {
+    fn normalized(self) -> Self {
         let sq = self.length_sq();
         if sq == S::from(0) {
-            *self
+            self
         } else {
-            *self / sq.sqrt()
+            self / sq.sqrt()
         }
     }
 }
@@ -60,14 +60,25 @@ pub trait Scalar:
 }
 
 impl Vector<f32> for glam::Vec2 {
-    fn dot(&self, other: &Self) -> f32 {
-        glam::Vec2::dot(*self, *other)
+    fn dot(self, other: Self) -> f32 {
+        glam::Vec2::dot(self, other)
+    }
+
+    fn length_sq(self) -> f32 {
+        glam::Vec2::length_squared(self)
+    }
+
+    fn length(self) -> f32 {
+        glam::Vec2::length(self)
+    }
+
+    fn normalized(self) -> Self {
+        glam::Vec2::normalize(self)
     }
 }
 
 impl Scalar for f32 {
     fn sqrt(&self) -> Self {
-        // Somehow errors with clippy but compiles fine
         f32::sqrt(*self)
     }
 }

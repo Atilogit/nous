@@ -19,7 +19,7 @@ pub fn sphere_sphere<V: Vector<S>, S: Scalar>(
     let r_sq = (a_radius + b_radius) * (a_radius + b_radius);
     let min_t = solver::quadratic(
         (b_delta - a_delta).length_sq(),
-        -S::from(2) * (a_pos - b_pos).dot(&(b_delta - a_delta)),
+        -S::from(2) * (a_pos - b_pos).dot(b_delta - a_delta),
         (a_pos - b_pos).length_sq() - r_sq,
     );
 

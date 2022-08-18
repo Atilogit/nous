@@ -11,3 +11,6 @@ itertools = "0.10"
 
 # for testing
 macroquad = "0.3"
+
+[profile.release]
+debug = 1
