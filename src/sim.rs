@@ -1,7 +1,7 @@
 use itertools::Itertools;
 
 use crate::{
-    shapes::Shape,
+    shapes::{Intersection, Shape},
     traits::{Scalar, Vector},
 };
 
@@ -52,7 +52,7 @@ pub struct RigidBody<V: Vector<S>, S> {
     weight: S,
     pos: V,
     vel: V,
-    collision: Option<()>,
+    intersection: Option<Intersection<V, S>>,
 }
 
 impl<V: Vector<S>, S: Scalar> RigidBody<V, S> {
@@ -62,7 +62,7 @@ impl<V: Vector<S>, S: Scalar> RigidBody<V, S> {
             weight,
             pos,
             vel,
-            collision: None,
+            intersection: None,
         }
     }
 
@@ -75,16 +75,18 @@ impl<V: Vector<S>, S: Scalar> RigidBody<V, S> {
             other.pos,
             other.vel * delta,
         );
-        if intersection {
-            self.collision = Some(());
-            other.collision = Some(());
-        }
+        // TODO Only take earliest collision
+        other.intersection = intersection.as_ref().map(Intersection::invert);
+        self.intersection = intersection;
     }
 
     pub fn move_tick(&mut self, delta: S) {
-        if self.collision.is_none() {
+        if let Some(intersection) = &self.intersection {
+            Shape::collide(intersection)
+        } else {
             self.pos = self.pos + self.vel * delta;
         }
+        self.intersection = None;
     }
 
     pub fn shape(&self) -> &Shape<V, S> {
