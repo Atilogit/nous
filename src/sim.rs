@@ -1,11 +1,11 @@
 use itertools::Itertools;
 
 use crate::{
-    shapes::{Intersection, Shape},
+    body::RigidBody,
     traits::{Scalar, Vector},
 };
 
-pub struct Simulation<V: Vector<S>, S> {
+pub struct Simulation<V: Vector<S>, S: Scalar> {
     objects: Vec<RigidBody<V, S>>,
 }
 
@@ -44,64 +44,5 @@ impl<V: Vector<S>, S: Scalar> Simulation<V, S> {
 impl<V: Vector<S>, S: Scalar> Default for Simulation<V, S> {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-pub struct RigidBody<V: Vector<S>, S> {
-    shape: Shape<V, S>,
-    weight: S,
-    pos: V,
-    vel: V,
-    intersection: Option<Intersection<V, S>>,
-}
-
-impl<V: Vector<S>, S: Scalar> RigidBody<V, S> {
-    pub fn new(shape: Shape<V, S>, weight: S, pos: V, vel: V) -> Self {
-        Self {
-            shape,
-            weight,
-            pos,
-            vel,
-            intersection: None,
-        }
-    }
-
-    pub fn intersect_tick(&mut self, other: &mut RigidBody<V, S>, delta: S) {
-        let intersection = Shape::intersect(
-            &self.shape,
-            self.pos,
-            self.vel * delta,
-            &other.shape,
-            other.pos,
-            other.vel * delta,
-        );
-        // TODO Only take earliest collision
-        other.intersection = intersection.as_ref().map(Intersection::invert);
-        self.intersection = intersection;
-    }
-
-    pub fn move_tick(&mut self, delta: S) {
-        if let Some(intersection) = &self.intersection {
-            Shape::collide(intersection)
-        } else {
-            self.pos = self.pos + self.vel * delta;
-        }
-        self.intersection = None;
-    }
-
-    pub fn shape(&self) -> &Shape<V, S> {
-        &self.shape
-    }
-
-    pub fn weight(&self) -> &S {
-        &self.weight
-    }
-
-    pub fn pos(&self) -> V {
-        self.pos
-    }
-
-    pub fn vel(&self) -> V {
-        self.vel
     }
 }

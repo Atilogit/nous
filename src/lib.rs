@@ -1,3 +1,4 @@
+mod body;
 mod shapes;
 mod sim;
 mod traits;
@@ -7,5 +8,6 @@ pub type Vec2 = glam::Vec2;
 pub type Vec3 = glam::Vec3;
 pub type Vec4 = glam::Vec4;
 
+pub use body::RigidBody;
 pub use shapes::Shape;
-pub use sim::{RigidBody, Simulation};
+pub use sim::Simulation;

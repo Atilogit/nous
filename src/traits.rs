@@ -3,10 +3,28 @@ use std::{
     ops::{Add, Div, Mul, Neg, Sub},
 };
 
-pub trait Vector<S>:
-    Add<Output = Self> + Sub<Output = Self> + Mul<S, Output = Self> + Sized + Copy + Debug
+pub trait Vector<S: Scalar>:
+    Add<Output = Self>
+    + Sub<Output = Self>
+    + Mul<S, Output = Self>
+    + Div<S, Output = Self>
+    + Sized
+    + Copy
+    + Debug
 {
     fn dot(&self, other: &Self) -> S;
+
+    fn length_sq(&self) -> S {
+        self.dot(self)
+    }
+
+    fn reflect(&self, normal: &Self) -> Self {
+        *self - *normal * S::from(2) * self.dot(normal)
+    }
+
+    fn normalized(&self) -> Self {
+        *self / self.length_sq().sqrt()
+    }
 }
 
 pub trait Scalar:
@@ -22,14 +40,6 @@ pub trait Scalar:
 {
     fn sqrt(&self) -> Self;
 }
-
-pub trait VectorHelper<S>: Vector<S> {
-    fn length_sq(&self) -> S {
-        self.dot(self)
-    }
-}
-
-impl<S: Scalar, V: Vector<S>> VectorHelper<S> for V {}
 
 impl Vector<f32> for glam::Vec2 {
     fn dot(&self, other: &Self) -> f32 {
