@@ -27,7 +27,7 @@ impl<V: Vector<S>, S: Scalar> Simulation<V, S> {
     pub fn tick(&mut self, delta: S) {
         for (a, b) in (0..self.objects.len()).tuple_combinations() {
             if a != b {
-                // a < b
+                debug_assert!(a < b);
                 let (first, last) = self.objects.split_at_mut(b);
                 let a = &mut first[a];
                 let b = &mut last[0];
