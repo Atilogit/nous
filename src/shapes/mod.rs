@@ -3,13 +3,13 @@ mod solver;
 
 use crate::traits::{Scalar, Vector};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct BodyProperties<V, S> {
     pub shape: Shape<V, S>,
     pub mass: S,
     pub pos: V,
     pub restitution: S,
-    vel: V,
+    delta: S,
     actual_vel: V,
 }
 
@@ -20,7 +20,7 @@ impl<V: Vector<S>, S: Scalar> BodyProperties<V, S> {
             mass,
             pos,
             restitution,
-            vel,
+            delta: 1.into(),
             actual_vel: vel,
         }
     }
@@ -31,8 +31,8 @@ impl<V: Vector<S>, S: Scalar> BodyProperties<V, S> {
             mass: self.mass,
             pos: self.pos,
             restitution: self.restitution,
-            vel: self.vel * delta,
-            actual_vel: self.vel,
+            delta,
+            actual_vel: self.actual_vel,
         }
     }
 
@@ -42,27 +42,32 @@ impl<V: Vector<S>, S: Scalar> BodyProperties<V, S> {
             mass: self.mass,
             pos: self.pos,
             restitution: self.restitution,
-            vel: self.actual_vel,
+            delta: 1.into(),
             actual_vel: self.actual_vel,
         }
     }
 
     pub fn vel(&self) -> V {
-        self.vel
+        self.actual_vel * self.delta
     }
 
     pub fn set_vel(&mut self, vel: V) {
-        self.vel = vel;
         self.actual_vel = vel;
+        self.delta = 1.into();
+    }
+
+    pub fn delta(&self) -> S {
+        self.delta
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Shape<V, S> {
     Sphere { radius: S },
     Cube { scale: V },
 }
 
+#[derive(Debug)]
 pub struct Intersection<V, S> {
     pub t: S,
     pub other_normal: V,
@@ -98,6 +103,11 @@ impl<V: Vector<S>, S: Scalar> Shape<V, S> {
     }
 
     pub fn collide(i: &Intersection<V, S>, self_properties: &mut BodyProperties<V, S>) {
+        let delta = i.self_properties.delta();
+
+        // Do subtick until collision
+        self_properties.pos = self_properties.pos + self_properties.vel() * i.t * delta;
+
         let cr = self_properties
             .restitution
             .min(&i.other_properties.restitution);
@@ -111,16 +121,15 @@ impl<V: Vector<S>, S: Scalar> Shape<V, S> {
         // Calculate relative velocity in terms of the normal direction
         let vn = dv.dot(&i.other_normal);
 
-        // Do not resolve if velocities are separating
-        if vn > S::from(0) {
-            // Calculate impulse scalar
-            let j = (-(S::from(1) + cr) * vn) / (S::from(1) / ma + S::from(1) / mb);
+        // Calculate impulse scalar
+        let j = (-(S::from(1) + cr) * vn) / (S::from(1) / ma + S::from(1) / mb);
 
-            // Apply impulse
-            let impulse = i.other_normal * j;
-            self_properties.set_vel(self_properties.vel() - impulse * (S::from(1) / ma));
-        }
+        // Apply impulse
+        let impulse = i.other_normal * j;
+        self_properties.set_vel(self_properties.vel() - impulse * (S::from(1) / ma));
 
-        dbg!(self_properties.vel().length());
+        // Remaining subtick with new velocity
+        self_properties.pos =
+            self_properties.pos + self_properties.vel() * (S::from(1) - i.t) * delta;
     }
 }
