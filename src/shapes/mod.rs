@@ -105,8 +105,6 @@ impl<V: Vector<S>, S: Scalar> Shape<V, S> {
     pub fn collide(i: &Intersection<V, S>, self_properties: &mut BodyProperties<V, S>) {
         let delta = i.self_properties.delta();
 
-        dbg!();
-
         // Do subtick until collision
         self_properties.pos = self_properties.pos + self_properties.vel() * i.t * delta;
 

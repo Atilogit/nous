@@ -23,12 +23,12 @@ async fn main() {
         Shape::Sphere { radius: 0.5 },
         1.,
         Vec2::new(0.5, 2.),
-        Vec2::new(0., -0.),
+        Vec2::new(0., -8.),
         1.,
     ));
 
     let scale = 40.;
-    let delta_step = 0.5;
+    let delta_step = 0.1;
     let draw_vel = false;
     loop {
         clear_background(BLACK);

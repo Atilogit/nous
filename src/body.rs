@@ -21,9 +21,20 @@ impl<V: Vector<S>, S: Scalar> RigidBody<V, S> {
             self.properties.apply_delta(delta),
             other.properties.apply_delta(delta),
         );
-        // TODO Only take earliest collision
-        other.intersection = intersection.as_ref().map(Intersection::invert);
-        self.intersection = intersection;
+        other.set_intersection(intersection.as_ref().map(Intersection::invert));
+        self.set_intersection(intersection);
+    }
+
+    fn set_intersection(&mut self, i: Option<Intersection<V, S>>) {
+        if let Some(i) = i {
+            if let Some(current) = &self.intersection {
+                if i.t < current.t {
+                    self.intersection = Some(i);
+                }
+            } else {
+                self.intersection = Some(i);
+            }
+        }
     }
 
     pub fn move_tick(&mut self, delta: S) {
@@ -32,6 +43,7 @@ impl<V: Vector<S>, S: Scalar> RigidBody<V, S> {
         } else {
             self.properties.pos = self.properties.pos + self.properties.vel() * delta;
         }
+        // Reset intersections
         self.intersection = None;
     }
 

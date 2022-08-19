@@ -23,13 +23,14 @@ pub fn sphere_sphere<V: Vector<S>, S: Scalar>(
         (a_pos - b_pos).length_sq() - r_sq,
     );
 
-    min_t
+    let min_t = min_t
         .map(|s| s.0)
-        .filter(|v| S::from(0) <= *v && v <= &S::from(1))
-        .map(|t| Intersection {
-            t,
-            other_normal: (a.pos + a_delta * t - b.pos - b_delta * t).normalized(),
-            self_properties: a,
-            other_properties: b,
-        })
+        .filter(|v| S::from(0) <= *v && v <= &S::from(1));
+
+    min_t.map(|t| Intersection {
+        t,
+        other_normal: (a.pos + a_delta * t - b.pos - b_delta * t).normalized(),
+        self_properties: a,
+        other_properties: b,
+    })
 }
