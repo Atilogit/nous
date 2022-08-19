@@ -39,7 +39,7 @@ impl<V: Vector<S>, S: Scalar> RigidBody<V, S> {
 
     pub fn move_tick(&mut self, delta: S) {
         if let Some(intersection) = &self.intersection {
-            Shape::collide(intersection, &mut self.properties)
+            Shape::collide(intersection, &mut self.properties, delta)
         } else {
             self.properties.pos = self.properties.pos + self.properties.vel() * delta;
         }

@@ -9,18 +9,25 @@ pub struct BodyProperties<V, S> {
     pub mass: S,
     pub pos: V,
     pub restitution: S,
-    delta: S,
+    pub bounding_radius: S,
+    scaled_vel_length: S,
+    actual_vel_length: S,
+    scaled_vel: V,
     actual_vel: V,
 }
 
 impl<V: Vector<S>, S: Scalar> BodyProperties<V, S> {
     pub fn new(shape: Shape<V, S>, mass: S, pos: V, vel: V, restitution: S) -> Self {
+        let vel_len = vel.length();
         Self {
+            bounding_radius: shape.bounding_radius(),
             shape,
             mass,
             pos,
             restitution,
-            delta: 1.into(),
+            scaled_vel_length: vel_len,
+            actual_vel_length: vel_len,
+            scaled_vel: vel,
             actual_vel: vel,
         }
     }
@@ -31,8 +38,11 @@ impl<V: Vector<S>, S: Scalar> BodyProperties<V, S> {
             mass: self.mass,
             pos: self.pos,
             restitution: self.restitution,
-            delta,
+            bounding_radius: self.bounding_radius,
+            scaled_vel: self.actual_vel * delta,
             actual_vel: self.actual_vel,
+            scaled_vel_length: self.actual_vel_length * delta,
+            actual_vel_length: self.actual_vel_length,
         }
     }
 
@@ -42,22 +52,28 @@ impl<V: Vector<S>, S: Scalar> BodyProperties<V, S> {
             mass: self.mass,
             pos: self.pos,
             restitution: self.restitution,
-            delta: 1.into(),
+            bounding_radius: self.bounding_radius,
+            scaled_vel: self.actual_vel,
             actual_vel: self.actual_vel,
+            scaled_vel_length: self.actual_vel_length,
+            actual_vel_length: self.actual_vel_length,
         }
     }
 
     pub fn vel(&self) -> V {
-        self.actual_vel * self.delta
+        self.scaled_vel
+    }
+
+    pub fn vel_len(&self) -> S {
+        self.scaled_vel_length
     }
 
     pub fn set_vel(&mut self, vel: V) {
+        let vel_len = vel.length();
         self.actual_vel = vel;
-        self.delta = 1.into();
-    }
-
-    pub fn delta(&self) -> S {
-        self.delta
+        self.scaled_vel = vel;
+        self.scaled_vel_length = vel_len;
+        self.actual_vel_length = vel_len;
     }
 }
 
@@ -87,24 +103,33 @@ impl<V: Vector<S>, S: Scalar> Intersection<V, S> {
 }
 
 impl<V: Vector<S>, S: Scalar> Shape<V, S> {
-    pub fn intersect(
-        a: BodyProperties<V, S>,
-        b: BodyProperties<V, S>,
-    ) -> Option<Intersection<V, S>> {
-        match a.shape {
-            Shape::Sphere { radius: a_radius } => match b.shape {
-                Shape::Sphere { radius: b_radius } => {
-                    intersect::sphere_sphere(a_radius, b_radius, a, b)
-                }
-                Shape::Cube { .. } => todo!(),
-            },
+    pub fn bounding_radius(&self) -> S {
+        match self {
+            Shape::Sphere { radius } => *radius,
             Shape::Cube { .. } => todo!(),
         }
     }
 
-    pub fn collide(i: &Intersection<V, S>, self_properties: &mut BodyProperties<V, S>) {
-        let delta = i.self_properties.delta();
+    pub fn intersect(
+        a: BodyProperties<V, S>,
+        b: BodyProperties<V, S>,
+    ) -> Option<Intersection<V, S>> {
+        let distance_limit = a.vel_len() + a.bounding_radius + b.bounding_radius + b.vel_len();
+        if (a.pos - b.pos).length_sq() > distance_limit * distance_limit {
+            // Skip if bodies are too far apart to collide in this tick
+            None
+        } else {
+            match a.shape {
+                Shape::Sphere { .. } => match b.shape {
+                    Shape::Sphere { .. } => intersect::sphere_sphere(a, b),
+                    Shape::Cube { .. } => todo!(),
+                },
+                Shape::Cube { .. } => todo!(),
+            }
+        }
+    }
 
+    pub fn collide(i: &Intersection<V, S>, self_properties: &mut BodyProperties<V, S>, delta: S) {
         // Do subtick until collision
         self_properties.pos = self_properties.pos + self_properties.vel() * i.t * delta;
 
