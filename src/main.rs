@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use macroquad::prelude::*;
 use nous::{RigidBody, Shape, Simulation, Vec2};
 
@@ -42,6 +44,7 @@ async fn main() {
     let delta_step = 0.1;
     let draw_vel = false;
     let mut frames = 0;
+    let start = Instant::now();
     loop {
         clear_background(BLACK);
 
@@ -81,4 +84,5 @@ async fn main() {
 
         next_frame().await
     }
+    println!("took {:?}", Instant::now().duration_since(start));
 }
