@@ -27,7 +27,18 @@ async fn main() {
         1.,
     ));
 
-    let scale = 40.;
+    for a in 0..3600 {
+        let dir = Vec2::from_angle((a as f32 / 10.).to_radians());
+        sim.spawn(RigidBody::new(
+            Shape::Sphere { radius: 0.05 },
+            0.5,
+            dir * 100.,
+            -dir * 5.,
+            1.,
+        ));
+    }
+
+    let scale = 10.;
     let delta_step = 0.1;
     let draw_vel = false;
     loop {
@@ -60,7 +71,7 @@ async fn main() {
         if is_mouse_button_pressed(MouseButton::Left) {
             sim.tick(delta_step);
         }
-        sim.tick(0.001);
+        sim.tick(0.05);
 
         next_frame().await
     }
