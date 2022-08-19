@@ -41,6 +41,7 @@ async fn main() {
     let scale = 10.;
     let delta_step = 0.1;
     let draw_vel = false;
+    let mut frames = 0;
     loop {
         clear_background(BLACK);
 
@@ -72,6 +73,11 @@ async fn main() {
             sim.tick(delta_step);
         }
         sim.tick(0.05);
+        frames += 1;
+
+        if frames >= 500 {
+            break;
+        }
 
         next_frame().await
     }
